@@ -1,7 +1,8 @@
 import {bundle} from '@remotion/bundler';
 import {
 	getCompositions,
-	renderMedia
+	renderMedia,
+	RenderMediaOnProgress,
 } from '@remotion/renderer';
 import express from 'express';
 import path from 'path';
@@ -69,7 +70,7 @@ const start = async () => {
   Review "${entry}" for the correct ID.`);
 	}
 
-	const outputLocation = `out/${compositionId}.mp4`;
+	const outputLocation = path.resolve('./out', `${compositionId}.mp4`);
 	console.log('Attempting to render:', outputLocation);
 	await renderMedia({
 		composition,
@@ -77,6 +78,39 @@ const start = async () => {
 		codec: 'h264',
 		outputLocation,
 		inputProps,
+		onStart: (e) => {
+			console.log('started', e);
+		},
+		onProgress,
 	});
 	console.log('Render done!');
+};
+
+
+const onProgress: RenderMediaOnProgress = ({
+	renderedFrames,
+	encodedFrames,
+	encodedDoneIn,
+	renderedDoneIn,
+	stitchStage,
+}) => {
+	if (stitchStage === 'encoding') {
+		// First pass, parallel rendering of frames and encoding into video
+		console.log('Encoding...');
+	} else if (stitchStage === 'muxing') {
+		// Second pass, adding audio to the video
+		console.log('Muxing audio...');
+	}
+	// Amount of frames rendered into images
+	console.log(`${renderedFrames} rendered`);
+	// Amount of frame encoded into a video
+	console.log(`${encodedFrames} encoded`);
+	// Time to create images of all frames
+	if (renderedDoneIn !== null) {
+		console.log(`Rendered in ${renderedDoneIn}ms`);
+	}
+	// Time to encode video from images
+	if (encodedDoneIn !== null) {
+		console.log(`Encoded in ${encodedDoneIn}ms`);
+	}
 };

@@ -5,5 +5,10 @@ export interface RedditThread {
   permalink: string,
   type: string|undefined,
   upvote_ratio: number | undefined,
-  audio: Array<string>
+  audio?: Array<string>
+}
+
+export interface Response {
+  thread: Array<RedditThread>,
+  base64_audio: Array<string>
 }

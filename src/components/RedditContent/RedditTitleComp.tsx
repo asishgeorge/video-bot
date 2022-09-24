@@ -8,7 +8,6 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import {RedditThread} from '../../types/reddit_types';
-import {getAudioDurationInSeconds} from '@remotion/media-utils';
 import {YouTubeVideo} from '../BackgroundVideo/YouTubeVideo';
 import {RedditContent} from './RedditContent';
 
@@ -16,41 +15,18 @@ export const RedditTitleComp: React.FC<{
 	thread: Array<RedditThread>;
 	audio: Array<string>;
 	clip_durations: Array<number>;
-}> = ({thread, audio, clip_durations}) => {
-	const [handle1] = useState(() => delayRender());
+	audio_clip_time: Array<number>;
+	video_clip_time: Array<number>;
+}> = ({thread, audio,  audio_clip_time, video_clip_time}) => {
 	const {fps, durationInFrames} = useVideoConfig();
-	const [audioClipTime, setAudioClipTime] = useState([0]);
-	const [videoClipTime, setVideoClipTime] = useState([0]);
+	const [audioClipTime, setAudioClipTime] = useState(audio_clip_time);
+	const [videoClipTime, setVideoClipTime] = useState(video_clip_time);
 
 	useEffect(() => {
-		let p: Array<Promise<number>> = [];
-		audio.forEach((a) => {
-			p.push(getAudioDurationInSeconds(a));
-		});
-		Promise.all(p).then((time) => {
-			setAudioClipTime(time);
-
-			let videoClip: Array<number> = [];
-			let counter = 0;
-			thread.forEach((t) => {
-				let clip_len = 0;
-
-				for (let i = 0; i < t.audio.length; i++) {
-					clip_len = clip_len + time[counter + i];
-				}
-
-				counter += t.audio.length;
-				console.log('counter', counter);
-
-				videoClip.push(clip_len);
-			});
-			console.log('videoClip', videoClip);
-			console.log('time', time);
-
-			setVideoClipTime(videoClip);
-			continueRender(handle1);
-		});
-	}, [thread]);
+		console.log("change", audio_clip_time)
+		setAudioClipTime(audio_clip_time)
+		setVideoClipTime(video_clip_time)
+	}, [audio_clip_time, video_clip_time])
 
 	return (
 		<>
@@ -86,9 +62,9 @@ export const RedditTitleComp: React.FC<{
 				)}
 			</Sequence>
 
-			<Sequence from={0} durationInFrames={Infinity} name={'YouTubeBG'}>
+			{/* <Sequence from={0} durationInFrames={Infinity} name={'YouTubeBG'}>
 				<YouTubeVideo />
-			</Sequence>
+			</Sequence> */}
 		</>
 	);
 };
